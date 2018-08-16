@@ -1,64 +1,40 @@
-const Joi = require('joi')
+const config = require('config');
+const Joi = require('joi');
+const morgan = require('morgan');
+const logger = require('./middleware/logger');
+const courses = require('./routes/courses');
+const home = require('./routes/home');
 const express = require('express');
+
+const debug = require('debug')('app:debugger');
+
 const app = express();
 
+// app.set('viewn engine', 'pug');
+// app.set('views', './views');
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(logger);
 
-const courses = [
-    { id: 1, name: 'Course 1005' },
-    { id: 2, name: 'Course 2000' },
-    { id: 3, name: 'Course 6500' },
-    { id: 4, name: 'Course 1400' }
-];
+app.use('/', home);
+app.use('/api/courses', courses);
 
-app.get('/', (req, res) => { res.send('No IMPLEMENTED YET')});
-app.get('/api/courses', (req, res) => { res.send(courses)});
-app.get('/api/courses/:id', (req, res) => { 
-    const course = courses.find(x => x.id === parseInt(req.params.id))
-    if(course == null) return res.status(404).send(`The Course with the given ID: ${req.params.id} is not found.`);
-    res.send(course);
-});
+// console.log(`Env: ${process.env.NODE_ENV}`);
+// console.log(`App: ${app.get('env')}`);
 
-app.post('/api/courses', (req, res) =>{
-    const { error } = validateCourse(req.body);
-    if (error) return res.status(400).send(result.error.details[0].message);
-
-    const course = { 
-        id: courses.length + 1,
-        name: req.body.name
-    }
-    courses.push(course);
-    res.send(course);
-});
-
-app.put('/api/courses/:id', (req, res) =>{
-    //Lookup
-    const course = courses.find(x => x.id === parseInt(req.params.id))
-    if(course == null) return res.status(404).send(`The Course with the given ID: ${req.params.id} is not found.`);
-
-        //Validatiion
-        //Using object destructuring
-    const { error } = validateCourse(req.body);
-    if (error) return res.status(400).send(result.error.details[0].message);
-
-    //Update
-    course.name = req.body.name;
-    res.send(course);
-});
-
-app.delete('/api/courses/:id', (req, res) =>{
-    const course = courses.find(x => x.id === parseInt(req.params.id))
-    if(course == null) return res.status(404).send(`The Course with the given ID: ${req.params.id} is not found.`);
-
-    const index = courses.indexOf(course);
-    courses.splice(index, 1);
-    res.send(course);
-});
-
-function validateCourse(course) {    
-    const schema = { name: Joi.string().min(3).required() }
-    return Joi.validate(course, schema);
+if (app.get('env') === 'development') {
+    app.use(morgan('tiny'));
+    debug('Debugging ...');
 }
+
+// debug('Do the work ...Web API with ExpressJs');
+// //Configuration
+// console.log('Application name: ' + config.get('name'));
+// console.log('Mail Server ' + config.get('mail.host'));
+
+
+
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Listing on port ${port}...`));

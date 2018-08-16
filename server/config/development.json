@@ -1,0 +1,7 @@
+{
+    "name": "My Web API - Development",
+    "mail": {
+        "host": "dev-mail-server",
+        "port": 1500
+    }
+}
